@@ -60,6 +60,25 @@ describe RRRDTool do
     end
   end
 
+  it "should wipe skipped buckets" do
+    rr.incr("test", "key", 1)
+
+    time_travel_to(Time.now + 20) do
+      rr.incr("test", "key", 1)
+
+      # fast forward & skip to an epoch with data
+      time_travel_to(Time.now + 50) do
+        rr.epoch("test").should match(/test:1/)
+        rr.score("test", "key").should == 1
+      end
+
+      # fast forward & skip to an epoch with no data
+      time_travel_to(Time.now + 150) do
+        rr.score("test", "key").should == 0
+      end
+    end
+  end
+
   it "should return top N items from all epochs" do
     rr.incr("test", "key1", 1)
     rr.incr("test", "key2", 3)
@@ -126,7 +145,4 @@ describe RRRDTool do
     end
   end
 
-  it "should store & verify epoch signatures for each bucket" do
-    pending "otherwise, if we skip several buckets, they won't get cleared"
-  end
 end

@@ -7,8 +7,6 @@ class RRRDTool
     @debug = opts[:debug] || false
 
     @current = nil
-    @signature = nil
-
     @db = Redis.new
   end
 
@@ -25,16 +23,19 @@ class RRRDTool
   end
 
   def epoch(set)
-    e = time_epoch
-    s = Time.now.to_i / @step
-    now = set + ":" + e.to_s
+    current_epoch = time_epoch
+    last_epoch = @db.get("#{set}:epoch").to_i
+    now = set + ":" + current_epoch.to_s
 
-    if now != @current and s != @signature
-      debug [:new_epoch, e]
+    if now != @current and current_epoch != last_epoch
+      debug [:new_epoch, current_epoch]
+
+      [(Time.now.to_i / @step - last_epoch).abs, @buckets].min.times do |n|
+        clear_bucket(epochs_ago(set, n))
+      end
+
       @current = now
-      @signature = Time.now.to_i / @step
-
-      clear_bucket(epochs_ago(set, @buckets))
+      @db.set("#{set}:epoch", Time.now.to_i / @step)
     end
 
     @current
