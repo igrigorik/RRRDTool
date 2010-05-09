@@ -1,17 +1,13 @@
 # RRRDTool
 
-Implements a [round-robin database](http://en.wikipedia.org/wiki/RRDtool) (circular buffer) pattern on top of Redis sorted
-sets. Ideal for answering top/last N queries in (almost) fixed (memory) space - actual
-footprint depends on the number of unique keys you are tracking. Specify the period
-and precision (step) of each collection bucket, and RRStat will do the rest.
+Implements a [round-robin database](http://en.wikipedia.org/wiki/RRDtool) (circular buffer) pattern on top of Redis sorted sets. Ideal for answering top/last N queries in (almost) fixed (memory) space - actual footprint depends on the number of unique keys you are tracking. Specify the period and precision (step) of each collection bucket, and RRRDTool will do the rest.
 
-Memory footprint will be limited to number of buckets * number of keys in each. New
-samples will be automatically placed into correct epoch/bucket. Ex:
+Memory footprint will be limited to number of buckets * number of keys in each. New samples will be automatically placed into correct epoch/bucket.
 
 ## Store up to 5s worth of samples, in 1s buckets:
     rr = RRRDTool.new(:step => 1, :buckets => 5)
 
-    rr.incr("namespace", "key")
+    rr.set("namespace", "key", 1)
     rr.incr("namespace", "key", 5)
     p rr.score("namespace", "key")  # => 6
 
@@ -25,6 +21,9 @@ samples will be automatically placed into correct epoch/bucket. Ex:
 
     p rr.score("namespace", "key")  # => 1
     p rr.stats("namespace")         # => {:buckets=>5, :unique_keys=>1, :key_count=>{0=>0, 1=>0, 2=>0, 3=>1, 4=>0}}
+
+    # find out high-to-low rank of a key across all epochs
+    p rr.rank("namespace", "key")   # => 0
 
 # License
 
