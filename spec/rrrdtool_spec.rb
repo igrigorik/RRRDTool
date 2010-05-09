@@ -22,6 +22,18 @@ describe RRRDTool do
     rr.score("test", "random_key").should == 0
   end
 
+  it "should (re)set score within correct epoch" do
+    rr.score("test", "key").should == 0
+    rr.set("test", "key", 5)
+    rr.score("test", "key").should == 5
+
+    rr.incr("test", "key").should == 6
+    rr.score("test", "key").should == 6
+
+    rr.set("test", "key", 5)
+    rr.score("test", "key").should == 5
+  end
+
   it "should increment buckets within correct epoch" do
     rr.epoch("test").should match(/test:0/)
 

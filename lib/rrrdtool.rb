@@ -60,6 +60,11 @@ class RRRDTool
     @db.zincrby(epoch(set), val, key).to_i
   end
 
+  def set(set, key, val)
+    debug [:zadd, epoch(set), val, key]
+    @db.zadd(epoch(set), val, key)
+  end
+
   def first(set, num, options = {})
     union_epochs(set)
     e = @db.zrevrange("#{set}:union", 0, num, options)
