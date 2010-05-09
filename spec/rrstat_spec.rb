@@ -1,7 +1,8 @@
 require 'spec'
 require 'delorean'
-require 'rrstat'
 require 'time'
+
+require 'lib/rrstat'
 
 describe RRStat do
   include Delorean
@@ -9,7 +10,7 @@ describe RRStat do
   let(:rr) { RRStat.new(:precision => 10, :buckets => 6) }
 
   before(:each) { time_travel_to("Jan 1 2010") }
-  before(:each) { rr.flushdb }
+  before(:each) { rr.clear("test") }
 
   it "should initialize db" do
     lambda {
@@ -88,5 +89,29 @@ describe RRStat do
       rr.delete("test", "key")
       rr.score("test", "key").should == 0
     end
+  end
+
+  it "should footprint stats" do
+    rr.incr("test", "key")
+    rr.incr("test", "key2")
+
+    time_travel_to(Time.now + 10) do
+      rr.incr("test", "key")
+
+      rr.stats("test").should == {
+        :buckets => 6,
+        :unique_keys => 2,
+        :key_count => { 0 => 2, 1 => 1, 2 => 0, 3 => 0, 4 => 0, 5 => 0 }
+      }
+    end
+
+    time_travel_to(Time.now + 60) do
+      rr.stats("test").should == {
+        :buckets => 6,
+        :unique_keys => 1,
+        :key_count => { 0 => 0, 1 => 1, 2 => 0, 3 => 0, 4 => 0, 5 => 0 }
+      }
+    end
+
   end
 end

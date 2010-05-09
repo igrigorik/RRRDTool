@@ -39,8 +39,11 @@ class RRStat
 
     @current
   end
+  alias :check_epoch :epoch
 
   def union_epochs(set)
+    check_epoch(set)
+
     debug [:union_epochs, buckets(set)]
     @db.zunion("#{set}:union", buckets(set))
   end
@@ -67,6 +70,20 @@ class RRStat
     union_epochs(set)
     e = @db.zrange("#{set}:union", 0, num, options)
     options.key?(:with_scores) ? Hash[*e] : e
+  end
+
+  def stats(set)
+    stats = {}
+
+    union_epochs(set)
+    stats[:buckets] = @buckets
+    stats[:unique_keys] = @db.zcard("#{set}:union")
+    stats[:key_count] = (0...@buckets).inject({}) do |h,v|
+      h[v] = @db.zcard("#{set}:#{v}")
+      h
+    end
+
+    stats
   end
 
   def delete(set, key)
