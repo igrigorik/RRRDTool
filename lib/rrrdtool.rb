@@ -1,9 +1,9 @@
 require 'redis'
 
-class RRStat
+class RRRDTool
   def initialize(opts)
-    @precision = opts[:precision]
     @buckets = opts[:buckets]
+    @step = opts[:step]
     @debug = opts[:debug] || false
 
     @current = nil
@@ -12,7 +12,7 @@ class RRStat
     @db = Redis.new
   end
 
-  def time_epoch; (Time.now.to_i / @precision) % @buckets; end
+  def time_epoch; (Time.now.to_i / @step) % @buckets; end
   def epochs_ago(set, num)
     b = time_epoch-num
     b = (b < 0) ? @buckets + b : b
@@ -26,13 +26,13 @@ class RRStat
 
   def epoch(set)
     e = time_epoch
-    s = Time.now.to_i / @precision
+    s = Time.now.to_i / @step
     now = set + ":" + e.to_s
 
     if now != @current and s != @signature
       debug [:new_epoch, e]
       @current = now
-      @signature = Time.now.to_i / @precision
+      @signature = Time.now.to_i / @step
 
       clear_bucket(epochs_ago(set, @buckets))
     end

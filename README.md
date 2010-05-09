@@ -1,28 +1,30 @@
-# RRStat
+# RRRDTool
 
-Implements a round-robin database pattern on top of Redis sorted sets. Ideal for
-answering top/last N queries in (almost) fixed (memory) space. Specify the period
-and precision of each collection bucket, and RRStat will do the rest.
+Implements a round-robin database (circular buffer) pattern on top of Redis sorted
+sets. Ideal for answering top/last N queries in (almost) fixed (memory) space - actual
+footprint depends on the number of unique keys you are tracking. Specify the period
+and precision (step) of each collection bucket, and RRStat will do the rest.
 
 Memory footprint will be limited to number of buckets * number of keys in each. New
 samples will be automatically placed into correct epoch/bucket. Ex:
 
-## Store up to 60s worth of samples, in 10s buckets:
-    rr = RRStat.new(:precision => 10, :buckets => 6)
+## Store up to 5s worth of samples, in 1s buckets:
+    rr = RRRDTool.new(:step => 1, :buckets => 5)
+
     rr.incr("namespace", "key")
     rr.incr("namespace", "key", 5)
-    rr.score("namespace", "key")    => 6
+    p rr.score("namespace", "key")  # => 6
 
-    sleep (10)
+    sleep (1)
 
     rr.incr("namespace", "key")
-    rr.score("namespace", "key")        => 7
-    rr.first("namespace", 1, :with_scores => true)   => {"key" => 7}
+    p rr.score("namespace", "key")  # => 7
+    p rr.first("namespace", 1, :with_scores => true) # => {"key"=>"7"}
 
-    sleep(50)
+    sleep(4)
 
-    # epoch will rollover, eliminating first bucket
-    rr.score("namespace", "key")    => 1
+    p rr.score("namespace", "key")  # => 1
+    p rr.stats("namespace")         # => {:buckets=>5, :unique_keys=>1, :key_count=>{0=>0, 1=>0, 2=>0, 3=>1, 4=>0}}
 
 # License
 

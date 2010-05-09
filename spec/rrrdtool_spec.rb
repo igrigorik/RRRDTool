@@ -2,19 +2,19 @@ require 'spec'
 require 'delorean'
 require 'time'
 
-require 'lib/rrstat'
+require 'lib/rrrdtool'
 
-describe RRStat do
+describe RRRDTool do
   include Delorean
 
-  let(:rr) { RRStat.new(:precision => 10, :buckets => 6) }
+  let(:rr) { RRRDTool.new(:step => 10, :buckets => 6) }
 
   before(:each) { time_travel_to("Jan 1 2010") }
   before(:each) { rr.clear("test") }
 
   it "should initialize db" do
     lambda {
-      RRStat.new(:precision => 10, :buckets => 6)
+      RRRDTool.new(:step => 10, :buckets => 6)
     }.should_not raise_error
   end
 
@@ -112,6 +112,9 @@ describe RRStat do
         :key_count => { 0 => 0, 1 => 1, 2 => 0, 3 => 0, 4 => 0, 5 => 0 }
       }
     end
+  end
 
+  it "should store & verify epoch signatures for each bucket" do
+    pending "otherwise, if we skip several buckets, they won't get cleared"
   end
 end

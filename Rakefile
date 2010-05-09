@@ -3,15 +3,15 @@ require "rake"
 begin
   require "jeweler"
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "rrstat"
-    gemspec.summary = "Round robin database via Redis sorted sets"
+    gemspec.name = "rrrdtool"
+    gemspec.summary = "Round robin database pattern via Redis sorted sets"
     gemspec.description = gemspec.summary
     gemspec.email = "ilya@igvita.com"
-    gemspec.homepage = "http://github.com/igrigorik/rrstat"
+    gemspec.homepage = "http://github.com/igrigorik/rrrdtool"
     gemspec.authors = ["Ilya Grigorik"]
     gemspec.required_ruby_version = ">= 1.8"
-    gemspec.add_dependency("redis", ">= 2.0.0")
-    gemspec.rubyforge_project = "rrstat"
+    gemspec.add_dependency("redis", ">= 1.9")
+    gemspec.rubyforge_project = "rrrdtool"
   end
 
   Jeweler::GemcutterTasks.new
