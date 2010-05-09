@@ -4,26 +4,37 @@ class RRStat
   def initialize(opts)
     @precision = opts[:precision]
     @buckets = opts[:buckets]
+    @debug = opts[:debug] || false
 
     @current = nil
+    @signature = nil
+
     @db = Redis.new
   end
 
-  def time_epoch; Time.now.to_i / @buckets; end
+  def time_epoch; (Time.now.to_i / @precision) % @buckets; end
+  def epochs_ago(set, num)
+    b = time_epoch-num
+    b = (b < 0) ? @buckets + b : b
+
+    "#{set}:#{b}"
+  end
 
   def buckets(set)
-    (0...@buckets).inject([]) {|a,v| a.push "#{set}:#{(time_epoch - v)}" }
+    (0...@buckets).inject([]) {|a,v| a.push epochs_ago(set, v) }
   end
 
   def epoch(set)
     e = time_epoch
+    s = Time.now.to_i / @precision
     now = set + ":" + e.to_s
 
-    if now != @current
+    if now != @current and s != @signature
       debug [:new_epoch, e]
       @current = now
+      @signature = Time.now.to_i / @precision
 
-      clear_bucket("#{set}:#{e - @buckets}")
+      clear_bucket(epochs_ago(set, @buckets))
     end
 
     @current
@@ -79,5 +90,5 @@ class RRStat
       @db.zremrangebyrank(b, 0, 2**32)
     end
 
-    def debug(msg); p msg; end
+    def debug(msg); p msg if @debug; end
 end

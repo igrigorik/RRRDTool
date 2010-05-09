@@ -22,7 +22,7 @@ describe RRStat do
   end
 
   it "should increment buckets within correct epoch" do
-    rr.epoch("test").should match(/test:210394200/)
+    rr.epoch("test").should match(/test:0/)
 
     rr.incr("test", "key")
     rr.score("test", "key").should == 1
@@ -32,15 +32,15 @@ describe RRStat do
 
     # advance to next epoch
     time_travel_to(Time.now + 10) do
-      rr.epoch("test").should match(/test:210394201/)
+      rr.epoch("test").should match(/test:1/)
 
       rr.incr("test", "key")
       rr.score("test", "key").should == 4
     end
 
     # advance 5 epochs, to scroll original incr's off the list
-    time_travel_to(Time.now + 40) do
-      rr.epoch("test").should match(/test:210394206/)
+    time_travel_to(Time.now + 60) do
+      rr.epoch("test").should match(/test:0/)
 
       rr.incr("test", "key")
       rr.score("test", "key").should == 2
@@ -53,7 +53,7 @@ describe RRStat do
 
     # advance to next epoch
     time_travel_to(Time.now + 10) do
-      rr.epoch("test").should match(/test:210394201/)
+      rr.epoch("test").should match(/test:1/)
       rr.incr("test", "key3", 5)
 
       rr.first("test", 3).should == ["key3", "key2", "key1"]
@@ -67,7 +67,7 @@ describe RRStat do
 
     # advance to next epoch
     time_travel_to(Time.now + 10) do
-      rr.epoch("test").should match(/test:210394201/)
+      rr.epoch("test").should match(/test:1/)
       rr.incr("test", "key3", 5)
 
       rr.last("test", 3).should == ["key1", "key2", "key3"]
@@ -81,7 +81,7 @@ describe RRStat do
 
     # advance to next epoch
     time_travel_to(Time.now + 10) do
-      rr.epoch("test").should match(/test:210394201/)
+      rr.epoch("test").should match(/test:1/)
       rr.incr("test", "key")
       rr.score("test", "key").should == 2
 
