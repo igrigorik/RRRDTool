@@ -78,6 +78,11 @@ class RRRDTool
     options.key?(:with_scores) ? Hash[*e] : e
   end
 
+  def rank(set, key)
+    union_epochs(set)
+    @db.zrevrank("#{set}:union", key)
+  end
+
   def stats(set)
     stats = {}
 

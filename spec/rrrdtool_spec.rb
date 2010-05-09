@@ -122,6 +122,21 @@ describe RRRDTool do
     end
   end
 
+  it "should return rank of key across all epochs" do
+    rr.set("test", "key1", 2)
+    rr.set("test", "key2", 1)
+
+    time_travel_to(Time.now + 10) do
+      rr.epoch("test").should match(/test:1/)
+
+      rr.set("test", "key1", 1)
+      rr.set("test", "key2", 3)
+
+      rr.rank("test", "key2").should == 0
+      rr.rank("test", "key1").should == 1
+    end
+  end
+
   it "should footprint stats" do
     rr.incr("test", "key")
     rr.incr("test", "key2")
