@@ -1,6 +1,6 @@
 # RRRDTool
 
-Implements a round-robin database (circular buffer) pattern on top of Redis sorted
+Implements a [round-robin database](http://en.wikipedia.org/wiki/RRDtool) (circular buffer) pattern on top of Redis sorted
 sets. Ideal for answering top/last N queries in (almost) fixed (memory) space - actual
 footprint depends on the number of unique keys you are tracking. Specify the period
 and precision (step) of each collection bucket, and RRStat will do the rest.
